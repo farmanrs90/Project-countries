@@ -1,0 +1,18 @@
+body {
+    font-family: Arial, sans-serif;
+    padding: 30px;
+}
+
+.back {
+    display: inline-block;
+    margin-bottom: 20px;
+    text-decoration: none;
+}
+
+.details img {
+    width: 300px;
+}
+
+.details h2 {
+    margin: 20px 0;
+}
