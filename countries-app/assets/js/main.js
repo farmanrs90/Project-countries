@@ -1,4 +1,4 @@
-const API_URL = "https://restcountries.com/v3.1/all?fields=name,cca2,capital,region,population,flags";
+const API_URL = "https://restcountries.com/v3.1/all?fields=name,cca3,capital,region,population,flags";
 
 const cards = document.querySelector(".cards");
 const searchInput = document.getElementById("searchInput");
@@ -6,8 +6,27 @@ const regionFilter = document.getElementById("regionFilter");
 const themeToggle = document.getElementById("themeToggle");
 
 let allCountries = [];
+const savedTheme = localStorage.getItem("theme");
 
-// Fetch countries
+if (savedTheme === "dark") {
+    document.body.classList.add("dark");
+    themeToggle.textContent = "☀️ Light Mode";
+}
+
+themeToggle.addEventListener("click", () => {
+    document.body.classList.toggle("dark");
+
+    if (document.body.classList.contains("dark")) {
+        localStorage.setItem("theme", "dark");
+        themeToggle.textContent = "☀️ Light Mode";
+    } else {
+        localStorage.setItem("theme", "light");
+        themeToggle.textContent = "🌙 Dark Mode";
+    }
+});
+
+
+
 async function getCountries() {
     const res = await fetch(API_URL);
     const data = await res.json();
@@ -15,48 +34,47 @@ async function getCountries() {
     renderCards(data);
 }
 
+
 function renderCards(countries) {
     cards.innerHTML = "";
-
     countries.forEach(country => {
         const card = document.createElement("a");
-        card.href = `details.html?name=${country.name.common}`;
+        card.href = `details.html?code=${country.cca3}`;
 
         card.innerHTML = `
             <img src="${country.flags.png}" alt="${country.name.common}">
             <div>
                 <h3>${country.name.common}</h3>
-                <p>Population: ${country.population.toLocaleString()}</p>
-                <p>Region: ${country.region}</p>
-                <p>Capital: ${country.capital?.[0] || "N/A"}</p>
+                <p><strong>Population:</strong> ${country.population.toLocaleString()}</p>
+                <p><strong>Region:</strong> ${country.region}</p>
+                <p><strong>Capital:</strong> ${country.capital?.[0] || "N/A"}</p>
             </div>
         `;
-
         cards.appendChild(card);
     });
 }
 
-// Search logic
-searchInput.addEventListener("input", () => {
-    const value = searchInput.value.toLowerCase();
-    const filtered = allCountries.filter(c =>
-        c.name.common.toLowerCase().includes(value)
-    );
-    renderCards(filtered);
-});
 
-// Filter logic
-regionFilter.addEventListener("change", () => {
-    const region = regionFilter.value;
-    const filtered = region
-        ? allCountries.filter(c => c.region === region)
-        : allCountries;
-    renderCards(filtered);
-});
+function applyFilters() {
+    let filtered = [...allCountries];
 
-// Dark / Light Mode
-themeToggle.addEventListener("click", () => {
-    document.body.classList.toggle("dark");
-});
+    const searchValue = searchInput.value.toLowerCase();
+    const regionValue = regionFilter.value;
+
+    if (searchValue) {
+        filtered = filtered.filter(c =>
+            c.name.common.toLowerCase().includes(searchValue)
+        );
+    }
+
+    if (regionValue) {
+        filtered = filtered.filter(c => c.region === regionValue);
+    }
+
+    renderCards(filtered);
+}
+
+searchInput.addEventListener("input", applyFilters);
+regionFilter.addEventListener("change", applyFilters);
 
 getCountries();
